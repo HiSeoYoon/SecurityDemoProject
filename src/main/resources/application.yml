@@ -1,18 +1,29 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
     username: username
     password: password
-    url: jdbc:mysql://localhost:3306/local?characterEncoding=utf8&useUnicode=true&mysqlEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Seoul
-
+  h2:
+    console:
+      enabled: true
   jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        default_batch_fetch_size: 1000
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
+    show-sql: true
+  security:
+    user:
+      name: admin
+      password: password
+    jwt:
+      secret: VlwEyVBsYt9V7zq57TejMnVUyzblYcfPQye08f7MGVA9XkHa
+      # Change this to your preferred secret key
+      expiration: 86400000      # Token validity period in milliseconds (1 day)
 
-jwt:
-  secret:
-    key: x!A%D*G-KaPdSgVkYp3s5v8y/B?E(H+M
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
