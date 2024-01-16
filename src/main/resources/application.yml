@@ -7,11 +7,15 @@ spring:
   h2:
     console:
       enabled: true
+      path: /h2-console
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   security:
+    h2:
+      console:
+        enabled: false
     user:
       name: admin
       password: password
