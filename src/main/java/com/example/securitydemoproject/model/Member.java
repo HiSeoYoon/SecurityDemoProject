@@ -1,10 +1,8 @@
-package com.example.securitydemoproject.domain;
+package com.example.securitydemoproject.model;
 
 import com.example.securitydemoproject.dto.MemberSignupRequestDto;
-import com.example.securitydemoproject.model.Role;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
 
@@ -16,6 +14,7 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -30,9 +29,5 @@ public class Member {
         password = request.getPassword();
         name = request.getName();
         role = Role.USER;
-    }
-
-    public void encryptPassword(PasswordEncoder passwordEncoder) {
-        password = passwordEncoder.encode(password);
     }
 }

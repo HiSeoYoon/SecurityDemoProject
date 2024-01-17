@@ -1,16 +1,11 @@
 package com.example.securitydemoproject.service;
 
-import com.example.securitydemoproject.domain.Member;
+import com.example.securitydemoproject.model.Member;
 import com.example.securitydemoproject.dto.JwtRequestDto;
 import com.example.securitydemoproject.dto.MemberSignupRequestDto;
 import com.example.securitydemoproject.repository.MemberRepository;
-import com.example.securitydemoproject.security.UserDetailsImpl;
+import com.example.securitydemoproject.security.JwtProvider;
 import lombok.AllArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -20,26 +15,22 @@ import javax.transaction.Transactional;
 @AllArgsConstructor
 public class AuthService {
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     public String login(JwtRequestDto request) throws Exception {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        Member member = memberRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 E-MAIL 입니다."));
 
-        UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
-        return principal.getUsername();
+        return jwtProvider.createToken(member.getName());
     }
-    public String signup(MemberSignupRequestDto request) {
-        boolean existMember = memberRepository.existsById(request.getEmail());
 
-        if (existMember) return null;
+    public String signup(MemberSignupRequestDto request) {
+        if (memberRepository.existsByEmail(request.getEmail())) {
+            return null;
+        }
 
         Member member = new Member(request);
-        member.encryptPassword(passwordEncoder);
 
         memberRepository.save(member);
         return member.getEmail();

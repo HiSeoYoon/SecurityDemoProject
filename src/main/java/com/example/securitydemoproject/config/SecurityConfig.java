@@ -1,17 +1,19 @@
 package com.example.securitydemoproject.config;
 
-import org.springframework.context.annotation.Bean;
+import com.example.securitydemoproject.filter.JwtAuthenticationFilter;
+import com.example.securitydemoproject.security.JwtProvider;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    private final JwtProvider jwtProvider;
 
     private static final String[] AUTH_WHITELIST = {
             // -- swagger ui
@@ -29,29 +31,30 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/h2/**"
     };
 
-    @Bean
-    public BCryptPasswordEncoder encodePassword() {  // 회원가입 시 비밀번호 암호화에 사용할 Encoder 빈 등록
-        return new BCryptPasswordEncoder();
+    public SecurityConfig(JwtProvider jwtProvider) {
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.csrf().disable();
+
+        http.httpBasic().disable()
                 .authorizeRequests()
+                .antMatchers("/test").authenticated()
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers("/admin").hasRole("ADMIN")
-                .anyRequest().authenticated();
+                .antMatchers(("/")).authenticated()
+                .and()
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider),
+                        UsernamePasswordAuthenticationFilter.class);
         http.headers().frameOptions().disable();
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers(AUTH_WHITELIST);
-    }
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
     }
 }

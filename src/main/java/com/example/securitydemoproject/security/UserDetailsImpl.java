@@ -1,6 +1,6 @@
 package com.example.securitydemoproject.security;
 
-import com.example.securitydemoproject.domain.Member;
+import com.example.securitydemoproject.model.Member;
 import com.example.securitydemoproject.model.Role;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
