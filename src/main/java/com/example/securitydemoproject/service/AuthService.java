@@ -5,6 +5,6 @@ import com.example.securitydemoproject.dto.MemberSignupRequestDto;
 
 
 public interface AuthService{
-    public String login(JwtRequestDto request);
-    public String signup(MemberSignupRequestDto request);
+    String login(JwtRequestDto request);
+    String signup(MemberSignupRequestDto request);
 }
