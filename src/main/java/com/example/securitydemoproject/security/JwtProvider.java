@@ -1,5 +1,6 @@
 package com.example.securitydemoproject.security;
 
+import com.example.securitydemoproject.model.Role;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,12 +24,15 @@ public class JwtProvider {
 
     private final UserDetailsService userDetailsService;
 
-    public String createToken(String username) {
+    public String createToken(String username, Role role) {
+        Claims claims = Jwts.claims().setSubject(username);
+        claims.put("roles", role);
+
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(SignatureAlgorithm.HS256, secretKey)

@@ -3,10 +3,12 @@ package com.example.securitydemoproject.model;
 import com.example.securitydemoproject.dto.MemberSignupRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
 @Getter
+@Setter
 @Entity
 @NoArgsConstructor
 public class Member {
@@ -28,6 +30,6 @@ public class Member {
         email = request.getEmail();
         password = request.getPassword();
         name = request.getName();
-        role = Role.USER;
+        role = (request.getRole() != null) ? Role.valueOf(request.getRole().toUpperCase()) : Role.USER;
     }
 }
