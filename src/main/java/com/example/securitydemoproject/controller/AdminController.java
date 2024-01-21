@@ -1,13 +1,11 @@
 package com.example.securitydemoproject.controller;
 
+import com.example.securitydemoproject.dto.UpdateUserRequest;
 import com.example.securitydemoproject.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -36,13 +34,35 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> getUser(@PathVariable int userId) {
         Map<String, Object> response = new HashMap<>();
 
-        try{
+        try {
             response = adminService.getUser(userId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "An error occurred: " + e.getMessage());
+            Map<String, Object> errorResponse = createErrorResponse(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<Map<String, Object>> updateUser(
+            @PathVariable int userId,
+            @RequestBody UpdateUserRequest updateUserRequest) {
+        try {
+            updateUserRequest.validateRole();
+            Map<String, Object> updatedUser = adminService.updateUser(userId, updateUserRequest);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = createErrorResponse(e);
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = createErrorResponse(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    private Map<String, Object> createErrorResponse(Exception e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "An error occurred: " + e.getMessage());
+        return errorResponse;
     }
 }
