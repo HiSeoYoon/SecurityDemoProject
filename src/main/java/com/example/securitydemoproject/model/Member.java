@@ -16,9 +16,10 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(unique = true, nullable = false)
     private String password;
 
     private String name;
@@ -31,5 +32,9 @@ public class Member {
         password = request.getPassword();
         name = request.getName();
         role = (request.getRole() != null) ? Role.valueOf(request.getRole().toUpperCase()) : Role.USER;
+    }
+
+    public Member(Long userId) {
+        id = userId;
     }
 }

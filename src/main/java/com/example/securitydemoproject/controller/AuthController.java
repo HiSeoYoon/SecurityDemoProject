@@ -3,6 +3,7 @@ package com.example.securitydemoproject.controller;
 import com.example.securitydemoproject.dto.JwtRequestDto;
 import com.example.securitydemoproject.dto.MemberSignupRequestDto;
 import com.example.securitydemoproject.service.AuthService;
+import com.example.securitydemoproject.service.LoginHistoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -19,11 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final LoginHistoryService loginHistoryService;
 
     @PostMapping(value = "/login")
     public ResponseEntity<String> login(@RequestBody JwtRequestDto request) {
         try {
             String token = authService.login(request);
+            loginHistoryService.logLoginHistory(request.getEmail());
             return ResponseEntity.ok(token);
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
