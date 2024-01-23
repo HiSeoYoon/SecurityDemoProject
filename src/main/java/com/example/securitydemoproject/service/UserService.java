@@ -1,10 +1,10 @@
 package com.example.securitydemoproject.service;
 
-import com.example.securitydemoproject.model.Member;
+import java.util.Map;
 
 
 public interface UserService {
-    Member getUserByUserEmail(String email);
+    Map<String, Object> getUserByUserName(String user);
 
     void changePassword(String username, String newPassword);
 }
