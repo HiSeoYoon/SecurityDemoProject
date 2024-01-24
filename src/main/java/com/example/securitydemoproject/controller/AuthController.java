@@ -4,6 +4,7 @@ import com.example.securitydemoproject.dto.JwtRequestDto;
 import com.example.securitydemoproject.dto.MemberSignupRequestDto;
 import com.example.securitydemoproject.service.AuthService;
 import com.example.securitydemoproject.service.LoginHistoryService;
+import io.jsonwebtoken.security.InvalidKeyException;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/auth")
@@ -42,6 +45,19 @@ public class AuthController {
             return ResponseEntity.ok(message);
         } catch (DuplicateKeyException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        try {
+            String token = authService.extractTokenFromRequest(request);
+            authService.logout(token);
+            return ResponseEntity.ok("Logout successful");
+        } catch (InvalidKeyException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }

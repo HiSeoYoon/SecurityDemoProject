@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Component
@@ -53,11 +55,25 @@ public class JwtProvider {
     }
 
     public boolean validateToken(String token) {
+        if(isTokenBlacklisted(token)){
+            return false;
+        }
+
         try {
             Jws<Claims> claimsJws = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return !claimsJws.getBody().getExpiration().before((new Date()));
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private final Set<String> blacklist = new HashSet<>();
+
+    public void addToBlacklist(String token) {
+        blacklist.add(token);
+    }
+
+    public boolean isTokenBlacklisted(String token) {
+        return blacklist.contains(token);
     }
 }

@@ -5,6 +5,7 @@ import com.example.securitydemoproject.dto.MemberSignupRequestDto;
 import com.example.securitydemoproject.model.Member;
 import com.example.securitydemoproject.repository.MemberRepository;
 import com.example.securitydemoproject.security.JwtProvider;
+import io.jsonwebtoken.security.InvalidKeyException;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 @Service
@@ -48,5 +50,19 @@ public class AuthServiceImpl implements AuthService{
 
         memberRepository.save(member);
         return member.getEmail();
+    }
+
+    @Override
+    public void logout(String token) {
+        if (jwtProvider.validateToken(token)) {
+            jwtProvider.addToBlacklist(token);
+        } else {
+            throw new InvalidKeyException("Invalid token");
+        }
+    }
+
+    @Override
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        return jwtProvider.resolveToken(request);
     }
 }
