@@ -1,6 +1,5 @@
 package com.example.securitydemoproject.security;
 
-import com.example.securitydemoproject.model.Role;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,9 +23,11 @@ public class JwtProvider {
     @Value("${spring.security.jwt.expiration}")
     private long validityInMilliseconds;
 
+    private static final double TOKEN_REFRESH_RATIO = 0.5;
+
     private final UserDetailsService userDetailsService;
 
-    public String createToken(String username, Role role) {
+    public String createToken(String username, String role) {
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("roles", role);
 
@@ -39,6 +40,19 @@ public class JwtProvider {
                 .setExpiration(validity)
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
+    }
+
+    public String refreshExpiredToken(String expiredToken) {
+        Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(expiredToken).getBody();
+
+        Date expiration = claims.getExpiration();
+        Date now = new Date();
+
+        if (expiration.getTime() - now.getTime() <= validityInMilliseconds * TOKEN_REFRESH_RATIO) {
+            return createToken(claims.getSubject(), claims.get("roles").toString());
+        } else {
+            return expiredToken;
+        }
     }
 
     public Authentication getAuthentication(String token) {
@@ -63,6 +77,18 @@ public class JwtProvider {
             Jws<Claims> claimsJws = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return !claimsJws.getBody().getExpiration().before((new Date()));
         } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public boolean isTokenPassedRefreshTime(String token){
+        Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+
+        Date expiration = claims.getExpiration();
+        Date now = new Date();
+        if (expiration.getTime() - now.getTime() <= validityInMilliseconds * TOKEN_REFRESH_RATIO) {
+            return true;
+        } else {
             return false;
         }
     }

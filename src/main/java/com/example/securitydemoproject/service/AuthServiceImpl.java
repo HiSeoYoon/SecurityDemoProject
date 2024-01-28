@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService{
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
         try {
-            return jwtProvider.createToken(member.getName(), member.getRole());
+            return jwtProvider.createToken(member.getName(), member.getRole().toString());
         } catch (Exception e) {
             throw new AuthenticationServiceException("토큰 생성에 실패하였습니다.", e);
         }
