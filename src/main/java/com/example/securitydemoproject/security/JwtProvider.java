@@ -2,6 +2,7 @@ package com.example.securitydemoproject.security;
 
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -24,6 +26,9 @@ public class JwtProvider {
     private long validityInMilliseconds;
 
     private static final double TOKEN_REFRESH_RATIO = 0.5;
+
+    private static final long TOKEN_CLEANUP_INTERVAL = 60 * 60 * 1000; // 1시간(ms)
+    private static final long TOKEN_EXPIRATION_THRESHOLD = 2 * 60 * 60 * 1000; // 2시간(ms)
 
     private final UserDetailsService userDetailsService;
 
@@ -101,5 +106,26 @@ public class JwtProvider {
 
     public boolean isTokenBlacklisted(String token) {
         return blacklist.contains(token);
+    }
+
+    private boolean isTokenPassedExpiredTime(String token){
+        try {
+            Date expiration = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getExpiration();
+            long currentTime = System.currentTimeMillis();
+            return expiration.before(new Date(currentTime - TOKEN_EXPIRATION_THRESHOLD));
+        } catch (JwtException | IllegalArgumentException e) {
+            return true;
+        }
+    }
+
+    @Scheduled(fixedRate = TOKEN_CLEANUP_INTERVAL)
+    public void scheduleTokenCleanup() {
+        Iterator<String> iterator = blacklist.iterator();
+        while (iterator.hasNext()) {
+            String token = iterator.next();
+            if (isTokenPassedExpiredTime(token)) {
+                iterator.remove();
+            }
+        }
     }
 }
