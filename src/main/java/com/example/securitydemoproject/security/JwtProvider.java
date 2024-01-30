@@ -2,6 +2,8 @@ package com.example.securitydemoproject.security;
 
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Component
 public class JwtProvider {
+    private static final Logger logger = LoggerFactory.getLogger(JwtProvider.class);
+
     @Value("${spring.security.jwt.secret}")
     private String secretKey;
 
@@ -32,6 +36,7 @@ public class JwtProvider {
 
     private final UserDetailsService userDetailsService;
 
+    //Creates a new JWT token
     public String createToken(String username, String role) {
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("roles", role);
@@ -47,6 +52,7 @@ public class JwtProvider {
                 .compact();
     }
 
+    //Refreshes an expired JWT token
     public String refreshExpiredToken(String expiredToken) {
         Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(expiredToken).getBody();
 
@@ -60,19 +66,23 @@ public class JwtProvider {
         }
     }
 
+    //Retrieves authentication information from a JWT token
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUsernameFromToken(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
+    //Retrieves the username from a JWT token
     public String getUsernameFromToken(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     }
 
+    //Resolves the JWT token from the request
     public String resolveToken(HttpServletRequest request) {
         return request.getHeader("Authorization");
     }
 
+    //Validates the JWT token
     public boolean validateToken(String token) {
         if(isTokenBlacklisted(token)){
             return false;
@@ -86,6 +96,7 @@ public class JwtProvider {
         }
     }
 
+    //Checks if the token has passed the refresh time
     public boolean isTokenPassedRefreshTime(String token){
         Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
 
@@ -100,14 +111,17 @@ public class JwtProvider {
 
     private final Set<String> blacklist = new HashSet<>();
 
+    //Adds a token to the blacklist
     public void addToBlacklist(String token) {
         blacklist.add(token);
     }
 
+    //Checks if a token is blacklisted
     public boolean isTokenBlacklisted(String token) {
         return blacklist.contains(token);
     }
 
+    //Checks if a token has passed the expiration time threshold
     private boolean isTokenPassedExpiredTime(String token){
         try {
             Date expiration = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getExpiration();
@@ -118,13 +132,16 @@ public class JwtProvider {
         }
     }
 
+    //Scheduled task to clean up expired tokens from the blacklist
     @Scheduled(fixedRate = TOKEN_CLEANUP_INTERVAL)
     public void scheduleTokenCleanup() {
+        logger.info("Token cleanup scheduled task running at: {}", new Date());
         Iterator<String> iterator = blacklist.iterator();
         while (iterator.hasNext()) {
             String token = iterator.next();
             if (isTokenPassedExpiredTime(token)) {
                 iterator.remove();
+                logger.info("Expired token removed from the blacklist: {}", token);
             }
         }
     }
