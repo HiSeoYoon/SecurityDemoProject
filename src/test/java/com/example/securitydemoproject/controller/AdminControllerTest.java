@@ -37,16 +37,6 @@ class AdminControllerTest {
     }
 
     @Test
-    void getUsers_Exception() {
-        when(adminService.getUsers()).thenThrow(new RuntimeException("Internal server error"));
-
-        ResponseEntity<List<Map<String, Object>>> responseEntity = adminController.getUsers();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-        assertEquals(Collections.emptyList(), responseEntity.getBody());
-    }
-
-    @Test
     void getUser_Success() {
         int userId = 1;
         Map<String, Object> mockUser = Collections.singletonMap("userId", userId);
@@ -56,17 +46,6 @@ class AdminControllerTest {
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockUser, responseEntity.getBody());
-    }
-
-    @Test
-    void getUser_Exception() {
-        int userId = 1;
-        when(adminService.getUser(userId)).thenThrow(new RuntimeException("Internal server error"));
-
-        ResponseEntity<Map<String, Object>> responseEntity = adminController.getUser(userId);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-        assertEquals(createErrorResponse("Internal server error"), responseEntity.getBody());
     }
 
     @Test

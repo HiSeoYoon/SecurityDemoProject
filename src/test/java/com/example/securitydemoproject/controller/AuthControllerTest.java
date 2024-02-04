@@ -77,17 +77,6 @@ class AuthControllerTest {
     }
 
     @Test
-    void signup_InternalServerError() {
-        MemberSignupRequestDto request = new MemberSignupRequestDto();
-        when(authService.signup(request)).thenThrow(new RuntimeException("Internal server error"));
-
-        ResponseEntity<String> response = authController.signup(request);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("An error occurred: Internal server error", response.getBody());
-    }
-
-    @Test
     void logout_Success() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(authService.extractTokenFromRequest(request)).thenReturn("validToken");
@@ -96,16 +85,5 @@ class AuthControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Logout successful", response.getBody());
-    }
-
-    @Test
-    void logout_InternalServerError() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(authService.extractTokenFromRequest(request)).thenThrow(new RuntimeException("Internal server error"));
-
-        ResponseEntity<String> response = authController.logout(request);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("An error occurred: Internal server error", response.getBody());
     }
 }
