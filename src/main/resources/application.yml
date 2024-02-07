@@ -23,6 +23,9 @@ spring:
       secret: VlwEyVBsYt9V7zq57TejMnVUyzblYcfPQye08f7MGVA9XkHa
       # Change this to your preferred secret key
       expiration: 86400000      # Token validity period in milliseconds (1 day)
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 server:
   port: 8080
