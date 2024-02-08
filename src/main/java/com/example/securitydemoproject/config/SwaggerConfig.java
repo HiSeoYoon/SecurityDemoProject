@@ -19,7 +19,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.any())//.basePackage("com.example.securitydemoproject"))
+                .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo());
@@ -27,10 +27,9 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Your API Title")
-                .description("Your API Description")
+                .title("Security API")
+                .description("Provides basic security API functionalities for user authentication, authorization, and user management.")
                 .version("1.0.0")
-                .contact(new Contact("Your Name", "Your Website", "your.email@example.com"))
                 .build();
     }
 }
