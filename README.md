@@ -85,3 +85,9 @@
 **H2 접근 경로**
 
 http://localhost:8080/h2-console
+
+
+
+**Swagger 주소**
+
+http://localhost:8080/swagger-ui/index.html
