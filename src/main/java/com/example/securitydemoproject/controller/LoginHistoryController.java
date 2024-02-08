@@ -3,6 +3,8 @@ package com.example.securitydemoproject.controller;
 import com.example.securitydemoproject.model.LoginHistory;
 import com.example.securitydemoproject.security.JwtProvider;
 import com.example.securitydemoproject.service.LoginHistoryService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/login-history")
+@Api(tags = "Login History Controller", description = "APIs for managing user login history")
 public class LoginHistoryController {
     private final LoginHistoryService loginHistoryService;
     private final JwtProvider jwtProvider;
@@ -30,6 +33,7 @@ public class LoginHistoryController {
     }
 
     @GetMapping("")
+    @ApiOperation(value = "Get login history for a user within a time range")
     public ResponseEntity<List<LoginHistory>> getLoginHistory(
             HttpServletRequest request,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
