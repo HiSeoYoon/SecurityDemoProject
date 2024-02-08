@@ -3,6 +3,8 @@ package com.example.securitydemoproject.controller;
 import com.example.securitydemoproject.dto.ChangePasswordRequest;
 import com.example.securitydemoproject.security.JwtProvider;
 import com.example.securitydemoproject.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
+@Api(tags = "User Controller", description = "APIs for managing user details and actions")
 public class UserController {
     private final UserService userService;
     private final JwtProvider jwtProvider;
@@ -26,6 +29,7 @@ public class UserController {
     }
 
     @GetMapping("")
+    @ApiOperation(value = "Get user details")
     public ResponseEntity<Map<String, Object>> getUser(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -42,6 +46,7 @@ public class UserController {
     }
 
     @PostMapping("/change-password")
+    @ApiOperation(value = "Change user password")
     public ResponseEntity<String> changePassword(HttpServletRequest request, @RequestBody ChangePasswordRequest newPassword) {
         try {
             String username = jwtProvider.getUsernameFromToken(jwtProvider.resolveToken(request));
