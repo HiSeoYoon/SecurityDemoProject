@@ -1,5 +1,6 @@
 package com.example.securitydemoproject.exception;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,10 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Object> handleDatabaseExceptions(DataAccessException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while accessing the database: " + ex.getMessage());
+    }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUsernameNotFoundException(UsernameNotFoundException ex) {

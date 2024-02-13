@@ -2,9 +2,11 @@ package com.example.securitydemoproject.repository;
 
 import com.example.securitydemoproject.model.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public interface MemberRepository extends JpaRepository<Member, String> {
     boolean existsByEmail(String email);
 
