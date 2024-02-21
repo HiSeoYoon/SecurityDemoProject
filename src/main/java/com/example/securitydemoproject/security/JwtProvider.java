@@ -1,9 +1,8 @@
 package com.example.securitydemoproject.security;
 
+import com.example.securitydemoproject.util.LoggerUtil;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +20,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Component
 public class JwtProvider {
-    private static final Logger logger = LoggerFactory.getLogger(JwtProvider.class);
 
     @Value("${spring.security.jwt.secret}")
     private String secretKey;
@@ -44,12 +42,16 @@ public class JwtProvider {
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
+
+        LoggerUtil.logInfo(JwtProvider.class, "New JWT token created for user: " + username);
+
+        return token;
     }
 
     //Refreshes an expired JWT token
@@ -60,7 +62,9 @@ public class JwtProvider {
         Date now = new Date();
 
         if (expiration.getTime() - now.getTime() <= validityInMilliseconds * TOKEN_REFRESH_RATIO) {
-            return createToken(claims.getSubject(), claims.get("roles").toString());
+            String refreshedToken = createToken(claims.getSubject(), claims.get("roles").toString());
+            LoggerUtil.logInfo(JwtProvider.class, "Expired JWT token refreshed for user: " + claims.getSubject());
+            return refreshedToken;
         } else {
             return expiredToken;
         }
@@ -69,6 +73,7 @@ public class JwtProvider {
     //Retrieves authentication information from a JWT token
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUsernameFromToken(token));
+        LoggerUtil.logInfo(JwtProvider.class, "Get Authentication Info from request.");
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -79,17 +84,21 @@ public class JwtProvider {
 
     //Resolves the JWT token from the request
     public String resolveToken(HttpServletRequest request) {
-        return request.getHeader("Authorization");
+        String token = request.getHeader("Authorization");
+        LoggerUtil.logInfo(JwtProvider.class, "Resolved JWT token from request.");
+        return token;
     }
 
     //Validates the JWT token
     public boolean validateToken(String token) {
         if(isTokenBlacklisted(token)){
+            LoggerUtil.logInfo(JwtProvider.class, "JWT token blacklisted: " + token);
             return false;
         }
 
         try {
             Jws<Claims> claimsJws = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            LoggerUtil.logInfo(JwtProvider.class, "JWT token validated: " + token);
             return !claimsJws.getBody().getExpiration().before((new Date()));
         } catch (JwtException | IllegalArgumentException e) {
             return false;
@@ -114,6 +123,7 @@ public class JwtProvider {
     //Adds a token to the blacklist
     public void addToBlacklist(String token) {
         blacklist.add(token);
+        LoggerUtil.logInfo(JwtProvider.class, "Add token to Balcklist: " + token);
     }
 
     //Checks if a token is blacklisted
@@ -135,13 +145,13 @@ public class JwtProvider {
     //Scheduled task to clean up expired tokens from the blacklist
     @Scheduled(fixedRate = TOKEN_CLEANUP_INTERVAL)
     public void scheduleTokenCleanup() {
-        logger.info("Token cleanup scheduled task running at: {}", new Date());
+        LoggerUtil.logInfo(JwtProvider.class, "Token cleanup scheduled task running at: " + new Date());
         Iterator<String> iterator = blacklist.iterator();
         while (iterator.hasNext()) {
             String token = iterator.next();
             if (isTokenPassedExpiredTime(token)) {
                 iterator.remove();
-                logger.info("Expired token removed from the blacklist: {}", token);
+                LoggerUtil.logInfo(JwtProvider.class, "Expired token removed from the blacklist: " + token);
             }
         }
     }
