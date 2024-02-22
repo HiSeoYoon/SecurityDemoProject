@@ -4,6 +4,7 @@ import com.example.securitydemoproject.dto.UpdateUserRequest;
 import com.example.securitydemoproject.model.Member;
 import com.example.securitydemoproject.model.Role;
 import com.example.securitydemoproject.repository.AdminRepository;
+import com.example.securitydemoproject.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<Map<String, Object>> getUsers() {
+        LoggerUtil.logInfo(AdminServiceImpl.class, "Retrieving all users.");
         List<Map<String, Object>> returnMemList = new ArrayList<>();
         List<Member> members = adminRepository.findAll();
         for (Member member : members) {
@@ -35,9 +37,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<String, Object> getUser(int userId) {
+        LoggerUtil.logInfo(AdminServiceImpl.class, "Retrieving user by id: " + userId);
         Map<String, Object> response = new HashMap<>();
         Member member = adminRepository.findById(Long.valueOf(userId))
-                .orElseThrow(() -> new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                .orElseThrow(() -> {
+                    LoggerUtil.logError(AdminServiceImpl.class, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                    return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
+                });
 
         if (member != null) {
             response.put("id", member.getId());
@@ -52,10 +58,14 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<String, Object> updateUser(int userId, UpdateUserRequest updateUserRequest) {
+        LoggerUtil.logInfo(AdminServiceImpl.class, "Updating user with id: " + userId);
         Map<String, Object> updatedUserDetails = new HashMap<>();
 
         Member member = adminRepository.findById(Long.valueOf(userId))
-                .orElseThrow(() -> new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                .orElseThrow(() -> {
+                    LoggerUtil.logError(AdminServiceImpl.class, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                    return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
+                });
 
         if (member != null) {
             adminRepository.updateMemberRole(Long.valueOf(userId), Role.valueOf(updateUserRequest.getRole().toUpperCase()));

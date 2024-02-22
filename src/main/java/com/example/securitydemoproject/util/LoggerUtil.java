@@ -10,8 +10,8 @@ public class LoggerUtil {
         logger.info("[{}] {}", clazz.getSimpleName(), message);
     }
 
-    public static void logDebug(Class<?> clazz, String message, Throwable throwable) {
-        logger.debug("[{}] {}", clazz.getSimpleName(), message, throwable);
+    public static void logDebug(Class<?> clazz, String message) {
+        logger.debug("[{}] {}", clazz.getSimpleName(), message);
     }
 
     public static void logError(Class<?> clazz, String message, Throwable throwable) {
