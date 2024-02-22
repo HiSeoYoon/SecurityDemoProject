@@ -64,5 +64,10 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public String extractTokenFromRequest(HttpServletRequest request) {
         return jwtProvider.resolveToken(request);
+        String token = jwtProvider.resolveToken(request);
+        if (token == null) {
+            throw new AuthenticationServiceException("Failed to extract token.");
+        }
+        return token;
     }
 }
