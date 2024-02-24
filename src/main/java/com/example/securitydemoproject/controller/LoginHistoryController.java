@@ -6,6 +6,7 @@ import com.example.securitydemoproject.service.LoginHistoryService;
 import com.example.securitydemoproject.util.LoggerUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +41,10 @@ public class LoginHistoryController {
         String username = jwtProvider.getUsernameFromToken(jwtProvider.resolveToken(request));
         LocalDateTime startTime = startDate.atStartOfDay();
         LocalDateTime endTime = endDate.atTime(LocalTime.MAX);
-        LoggerUtil.logInfo(LoginHistoryController.class, "Request received to get login history for user '" + username + "' between " + startTime + " and " + endTime);
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(LoginHistoryController.class, requestId, "Request received to get login history for user '" + username + "' between " + startTime + " and " + endTime);
         List<LoginHistory> loginHistory = loginHistoryService.getLoginHistoryByUserAndTimeRange(username, startTime, endTime);
-        LoggerUtil.logInfo(LoginHistoryController.class, "Login history retrieved successfully.");
+        LoggerUtil.requestLogInfo(LoginHistoryController.class, requestId, "Login history retrieved successfully.");
         return ResponseEntity.ok(loginHistory);
     }
 }
