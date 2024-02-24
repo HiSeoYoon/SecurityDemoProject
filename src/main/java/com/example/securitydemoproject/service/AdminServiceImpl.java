@@ -6,6 +6,7 @@ import com.example.securitydemoproject.model.Role;
 import com.example.securitydemoproject.repository.AdminRepository;
 import com.example.securitydemoproject.util.LoggerUtil;
 import lombok.AllArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<Map<String, Object>> getUsers() {
-        LoggerUtil.logInfo(AdminServiceImpl.class, "Retrieving all users.");
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(AdminServiceImpl.class, requestId, "Retrieving all users.");
         List<Map<String, Object>> returnMemList = new ArrayList<>();
         List<Member> members = adminRepository.findAll();
         for (Member member : members) {
@@ -37,11 +39,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<String, Object> getUser(int userId) {
-        LoggerUtil.logInfo(AdminServiceImpl.class, "Retrieving user by id: " + userId);
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(AdminServiceImpl.class, requestId, "Retrieving user by id: " + userId);
         Map<String, Object> response = new HashMap<>();
         Member member = adminRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> {
-                    LoggerUtil.logError(AdminServiceImpl.class, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                    LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
                     return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
                 });
 
@@ -58,12 +61,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<String, Object> updateUser(int userId, UpdateUserRequest updateUserRequest) {
-        LoggerUtil.logInfo(AdminServiceImpl.class, "Updating user with id: " + userId);
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(AdminServiceImpl.class, requestId, "Updating user with id: " + userId);
         Map<String, Object> updatedUserDetails = new HashMap<>();
 
         Member member = adminRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> {
-                    LoggerUtil.logError(AdminServiceImpl.class, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                    LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
                     return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
                 });
 

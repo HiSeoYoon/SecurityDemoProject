@@ -6,6 +6,7 @@ import com.example.securitydemoproject.repository.LoginHistoryRepository;
 import com.example.securitydemoproject.repository.MemberRepository;
 import com.example.securitydemoproject.util.LoggerUtil;
 import lombok.AllArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -22,18 +23,20 @@ public class LoginHistoryServiceImpl implements LoginHistoryService {
 
     @Override
     public void logLoginHistory(String email) {
-        LoggerUtil.logDebug(LoginHistoryServiceImpl.class, "Logging login history for email: " + email);
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogDebug(LoginHistoryServiceImpl.class, requestId, "Logging login history for email: " + email);
         LoginHistory loginHistory = new LoginHistory();
         loginHistory.setUser(new Member(getUserId(email)));
         loginHistory.setLoginTime(LocalDateTime.now());
         loginHistoryRepository.save(loginHistory);
-        LoggerUtil.logInfo(LoginHistoryServiceImpl.class, "Login history saved successfully for email: " + email);
+        LoggerUtil.requestLogInfo(LoginHistoryServiceImpl.class, requestId, "Login history saved successfully for email: " + email);
     }
 
     private Long getUserId(String email) {
+        String requestId = MDC.get("requestId");
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    LoggerUtil.logError(LoginHistoryServiceImpl.class, "Unregistered E-MAIL address: {}" + email, new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다."));
+                    LoggerUtil.requestLogError(LoginHistoryServiceImpl.class, requestId, "Unregistered E-MAIL address: {}" + email, new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다."));
                     return new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다.");
                 });
 
@@ -42,16 +45,17 @@ public class LoginHistoryServiceImpl implements LoginHistoryService {
 
     @Override
     public List<LoginHistory> getLoginHistoryByUserAndTimeRange(String username, LocalDateTime startTime, LocalDateTime endTime) {
-        LoggerUtil.logInfo(LoginHistoryServiceImpl.class, "Retrieving login history for user: " + username + " between " + startTime + " and " + endTime);
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(LoginHistoryServiceImpl.class, requestId, "Retrieving login history for user: " + username + " between " + startTime + " and " + endTime);
         Member member = memberRepository.findByName(username)
                 .orElseThrow(() -> {
-                    LoggerUtil.logError(LoginHistoryServiceImpl.class, "Unregistered USER NAME: {}" + username, new UsernameNotFoundException("가입되지 않은 USER NAME 입니다."));
+                    LoggerUtil.requestLogError(LoginHistoryServiceImpl.class, requestId, "Unregistered USER NAME: {}" + username, new UsernameNotFoundException("가입되지 않은 USER NAME 입니다."));
                     return new UsernameNotFoundException("가입되지 않은 USER NAME 입니다.");
                 });
 
         Long userId = member.getId();
         List<LoginHistory> loginHistories = loginHistoryRepository.findByUserIdAndLoginTimeBetween(userId, startTime, endTime);
-        LoggerUtil.logInfo(LoginHistoryServiceImpl.class, "Retrieved " + loginHistories.size() + " login history entries for user: " + username + " between " + startTime + " and " + endTime);
+        LoggerUtil.requestLogInfo(LoginHistoryServiceImpl.class, requestId, "Retrieved " + loginHistories.size() + " login history entries for user: " + username + " between " + startTime + " and " + endTime);
         return loginHistories;
     }
 }
