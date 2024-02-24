@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.MDC;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,19 +29,21 @@ public class AuthController {
     @PostMapping(value = "/login")
     @ApiOperation(value = "Authenticate user and generate JWT token")
     public ResponseEntity<String> login(@RequestBody JwtRequestDto request) {
-        LoggerUtil.logInfo(AuthController.class, "Request received to login user with email: "+request.getEmail());
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(AuthController.class, requestId, "Request received to login user with email: "+request.getEmail());
         String token = authService.login(request);
         loginHistoryService.logLoginHistory(request.getEmail());
-        LoggerUtil.logInfo(AuthController.class, "User logged in successfully.");
+        LoggerUtil.requestLogInfo(AuthController.class, requestId, "User logged in successfully.");
         return ResponseEntity.ok(token);
     }
 
     @PostMapping(value = "/signup")
     @ApiOperation(value = "Register a new user")
     public ResponseEntity<String> signup(@RequestBody MemberSignupRequestDto request) {
-        LoggerUtil.logInfo(AuthController.class, "Request received to signup new user with email: "+ request.getEmail());
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(AuthController.class, requestId, "Request received to signup new user with email: "+ request.getEmail());
         String message = authService.signup(request);
-        LoggerUtil.logInfo(AuthController.class, "New user signed up successfully.");
+        LoggerUtil.requestLogInfo(AuthController.class, requestId, "New user signed up successfully.");
         return ResponseEntity.ok(message);
     }
 
@@ -49,7 +52,8 @@ public class AuthController {
     public ResponseEntity<String> logout(HttpServletRequest request) {
         String token = authService.extractTokenFromRequest(request);
         authService.logout(token);
-        LoggerUtil.logInfo(AuthController.class, "User logged out successfully.");
+        String requestId = MDC.get("requestId");
+        LoggerUtil.requestLogInfo(AuthController.class, requestId, "User logged out successfully.");
         return ResponseEntity.ok("Logout successful");
     }
 }
