@@ -7,6 +7,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,10 +50,17 @@ public class AdminController {
             @PathVariable int userId,
             @RequestBody UpdateUserRequest updateUserRequest) {
         String requestId = MDC.get("requestId");
-        LoggerUtil.requestLogInfo(AdminController.class, requestId, "Request received to update user with ID: "+ userId);
-        updateUserRequest.validateRole();
-        Map<String, Object> updatedUser = adminService.updateUser(userId, updateUserRequest);
-        LoggerUtil.requestLogInfo(AdminController.class, requestId, "User with ID "+userId +" updated successfully.");
-        return ResponseEntity.ok(updatedUser);
+        LoggerUtil.requestLogInfo(AdminController.class, requestId, "Request received to update user with ID: " + userId);
+        try {
+            updateUserRequest.validateRole();
+            Map<String, Object> updatedUser = adminService.updateUser(userId, updateUserRequest);
+            LoggerUtil.requestLogInfo(AdminController.class, requestId, "User with ID " + userId + " updated successfully.");
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            LoggerUtil.requestLogError(AdminController.class, requestId, "Invalid role specified: ", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
 }
