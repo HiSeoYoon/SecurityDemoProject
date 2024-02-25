@@ -74,7 +74,7 @@ class AdminControllerTest {
     }
 
     private Map<String, Object> createErrorResponse(String errorMessage) {
-        return Collections.singletonMap("error", "An error occurred: " + errorMessage);
+        return Collections.singletonMap("error",  errorMessage);
     }
 
 }
