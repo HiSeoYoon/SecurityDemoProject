@@ -9,6 +9,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -39,9 +40,16 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> getUser(@PathVariable int userId) {
         String requestId = MDC.get("requestId");
         LoggerUtil.requestLogInfo(AdminController.class, requestId, "Request received to get user by ID: "+ userId);
-        Map<String, Object> response = adminService.getUser(userId);
-        LoggerUtil.requestLogInfo(AdminController.class, requestId, "Returning user with ID: "+ userId);
-        return ResponseEntity.ok(response);
+        try {
+            Map<String, Object> response = adminService.getUser(userId);
+            LoggerUtil.requestLogInfo(AdminController.class, requestId, "Returning user with ID: " + userId);
+            return ResponseEntity.ok(response);
+        } catch (UsernameNotFoundException e) {
+            LoggerUtil.requestLogError(AdminController.class, requestId, "User not found :", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
     @ApiOperation(value = "Update a user by ID", response = Map.class)
@@ -61,6 +69,11 @@ public class AdminController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (UsernameNotFoundException e) {
+            LoggerUtil.requestLogError(AdminController.class, requestId, "User not found :", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 }
