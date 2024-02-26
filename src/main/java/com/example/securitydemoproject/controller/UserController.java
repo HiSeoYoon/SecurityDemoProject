@@ -8,10 +8,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -33,9 +36,16 @@ public class UserController {
         String username = jwtProvider.getUsernameFromToken(jwtProvider.resolveToken(request));
         String requestId = MDC.get("requestId");
         LoggerUtil.requestLogInfo(UserController.class, requestId, "Request received to get details for user " + username);
-        Map<String, Object> response = userService.getUserByUserName(username);
-        LoggerUtil.requestLogInfo(UserController.class, requestId, "User details retrieved successfully.");
-        return ResponseEntity.ok(response);
+        try {
+            Map<String, Object> response = userService.getUserByUserName(username);
+            LoggerUtil.requestLogInfo(UserController.class, requestId, "User details retrieved successfully.");
+            return ResponseEntity.ok(response);
+        } catch (UsernameNotFoundException e) {
+            LoggerUtil.requestLogError(UserController.class, requestId, "Unregistered USER NAME: ", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
     @PostMapping("/change-password")
@@ -44,8 +54,13 @@ public class UserController {
         String username = jwtProvider.getUsernameFromToken(jwtProvider.resolveToken(request));
         String requestId = MDC.get("requestId");
         LoggerUtil.requestLogInfo(UserController.class, requestId, "Request received to change password for user " + username);
-        userService.changePassword(username, newPassword.getNewPassword());
-        LoggerUtil.requestLogInfo(UserController.class, requestId, "Password changed successfully for user " + username);
-        return ResponseEntity.ok("Password changed successfully");
+        try {
+            userService.changePassword(username, newPassword.getNewPassword());
+            LoggerUtil.requestLogInfo(UserController.class, requestId, "Password changed successfully for user " + username);
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (UsernameNotFoundException e) {
+            LoggerUtil.requestLogError(UserController.class, requestId, "Unregistered USER NAME: ", e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }

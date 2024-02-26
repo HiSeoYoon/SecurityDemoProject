@@ -59,7 +59,7 @@ class UserControllerTest {
 
         ResponseEntity<Map<String, Object>> responseEntity = userController.getUser(request);
 
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(createErrorResponse("User not found"), responseEntity.getBody());
         verify(jwtProvider, times(1)).resolveToken(request);
         verify(jwtProvider, times(1)).getUsernameFromToken("fakeToken");
@@ -96,7 +96,7 @@ class UserControllerTest {
         ResponseEntity<String> responseEntity = userController.changePassword(request, newPassword);
 
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertEquals("User not found: User not found", responseEntity.getBody());
+        assertEquals("User not found", responseEntity.getBody());
         verify(jwtProvider, times(1)).resolveToken(request);
         verify(jwtProvider, times(1)).getUsernameFromToken("fakeToken");
         verify(userService, times(1)).changePassword("testUser", "newPassword");
@@ -113,7 +113,7 @@ class UserControllerTest {
     // Helper method to create an error response
     private Map<String, Object> createErrorResponse(String errorMessage) {
         Map<String, Object> response = new HashMap<>();
-        response.put("error", "An error occurred: " + errorMessage);
+        response.put("error", errorMessage);
         return response;
     }
 }
