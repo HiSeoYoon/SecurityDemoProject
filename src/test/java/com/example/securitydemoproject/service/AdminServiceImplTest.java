@@ -105,14 +105,13 @@ class AdminServiceImplTest {
 
         // Mocking the behavior of adminRepository.findById() and adminRepository.updateMemberRole()
         when(adminRepository.findById(1L)).thenReturn(Optional.of(member1));
-        //when(adminRepository.updateMemberRole(1L, Role.ADMIN)).thenReturn(1);
 
         // Perform the service method
         Map<String, Object> result = adminService.updateUser(1, updateUserRequest);
 
         // Verify the interactions and assertions
         verify(adminRepository, times(1)).findById(1L);
-        verify(adminRepository, times(1)).updateMemberRole(1L, Role.ADMIN);
+        verify(adminRepository, times(1)).updateMemberRoleWithExceptionHandling(1L, Role.ADMIN);
 
         assertEquals(1L, result.get("id"));
         assertEquals("user1@example.com", result.get("email"));
