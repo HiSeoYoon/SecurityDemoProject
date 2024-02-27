@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataAccessException;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,5 +23,13 @@ public interface AdminRepository extends JpaRepository<Member, String> {
     @Modifying
     @Query("UPDATE Member m SET m.role = :role WHERE m.id = :userId")
     void updateMemberRole(@Param("userId") long userId, @Param("role") Role role);
+
+    default void updateMemberRoleWithExceptionHandling(long userId, Role role) {
+        try {
+            updateMemberRole(userId, role);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("An error occurred while updating member role", e);
+        }
+    }
 
 }

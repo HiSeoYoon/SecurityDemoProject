@@ -65,23 +65,26 @@ public class AdminServiceImpl implements AdminService {
         LoggerUtil.requestLogInfo(AdminServiceImpl.class, requestId, "Updating user with id: " + userId);
         Map<String, Object> updatedUserDetails = new HashMap<>();
 
-        Member member = adminRepository.findById(Long.valueOf(userId))
-                .orElseThrow(() -> {
-                    LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
-                    return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
-                });
+        try {
+            Member member = adminRepository.findById(Long.valueOf(userId))
+                    .orElseThrow(() -> {
+                        LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
+                        return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
+                    });
 
-        if (member != null) {
-            adminRepository.updateMemberRole(Long.valueOf(userId), Role.valueOf(updateUserRequest.getRole().toUpperCase()));
+            if (member != null) {
+                adminRepository.updateMemberRoleWithExceptionHandling(Long.valueOf(userId), Role.valueOf(updateUserRequest.getRole().toUpperCase()));
 
-            updatedUserDetails.put("id", member.getId());
-            updatedUserDetails.put("email", member.getEmail());
-            updatedUserDetails.put("password", member.getPassword());
-            updatedUserDetails.put("name", member.getName());
-            updatedUserDetails.put("role", updateUserRequest.getRole());
+                updatedUserDetails.put("id", member.getId());
+                updatedUserDetails.put("email", member.getEmail());
+                updatedUserDetails.put("password", member.getPassword());
+                updatedUserDetails.put("name", member.getName());
+                updatedUserDetails.put("role", updateUserRequest.getRole());
+            }
+        } catch (RuntimeException ex) {
+            LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "Error occurred while updating user role with id: " + userId, ex);
+            throw new RuntimeException("Error occurred while updating user role with id: " + userId, ex);
         }
-
         return updatedUserDetails;
     }
-
 }
