@@ -50,7 +50,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Authentication failed due to bad credentials: " + e.getMessage());
         } catch (AuthenticationServiceException e) {
             LoggerUtil.requestLogError(AuthController.class, requestId, "Authentication service exception occurred: ", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Authentication service exception occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication service exception occurred: " + e.getMessage());
         }
     }
 
