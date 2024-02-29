@@ -46,9 +46,7 @@ public class AdminController {
             return ResponseEntity.ok(response);
         } catch (UsernameNotFoundException e) {
             LoggerUtil.requestLogError(AdminController.class, requestId, "User not found :", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e));
         }
     }
 
@@ -66,14 +64,16 @@ public class AdminController {
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             LoggerUtil.requestLogError(AdminController.class, requestId, "Invalid role specified: ", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createErrorResponse(e));
         } catch (UsernameNotFoundException e) {
             LoggerUtil.requestLogError(AdminController.class, requestId, "User not found :", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e));
         }
+    }
+
+    private Map<String, Object> createErrorResponse(Exception e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", e.getMessage());
+        return errorResponse;
     }
 }
