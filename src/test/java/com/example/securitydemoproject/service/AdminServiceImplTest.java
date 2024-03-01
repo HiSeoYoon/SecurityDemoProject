@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -99,6 +100,15 @@ class AdminServiceImplTest {
     }
 
     @Test
+    void getUser_EmptyResult() {
+        // Mocking the behavior of adminRepository.findById()
+        when(adminRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+        // Test and Verify
+        assertThrows(EmptyResultDataAccessException.class, () -> adminService.getUser(1));
+    }
+
+    @Test
     void updateUser_ExistingUserId_ReturnsUpdatedUserData() {
         UpdateUserRequest updateUserRequest = new UpdateUserRequest();
         updateUserRequest.setRole("ADMIN");
@@ -118,5 +128,42 @@ class AdminServiceImplTest {
         assertEquals("password1", result.get("password"));
         assertEquals("User1", result.get("name"));
         assertEquals("ADMIN", result.get("role"));
+    }
+
+    @Test
+    void updateUser_EmptyResult() {
+        // given
+        int userId = 3;
+        UpdateUserRequest updateUserRequest = new UpdateUserRequest();
+        updateUserRequest.setRole("USER");
+
+        // Mocking the behavior of adminRepository.findById()
+        when(adminRepository.findById(eq(3L))).thenReturn(Optional.empty());
+
+        // when, then
+        EmptyResultDataAccessException exception = assertThrows(
+                EmptyResultDataAccessException.class,
+                () -> adminService.updateUser(userId, updateUserRequest)
+        );
+
+        // Test and Verify
+        assertEquals("Incorrect result size: expected 0, actual 0", exception.getMessage());
+
+        verify(adminRepository, never()).updateMemberRoleWithExceptionHandling(anyLong(), any(Role.class));
+    }
+
+
+    @Test
+    void updateUser_ExceptionThrown() {
+        // given
+        UpdateUserRequest updateUserRequest = new UpdateUserRequest();
+        updateUserRequest.setRole("ADMIN");
+
+        // Mocking the behavior of adminRepository.findById()
+        when(adminRepository.findById(1L)).thenReturn(java.util.Optional.of(member1));
+        doThrow(new RuntimeException("Error")).when(adminRepository).updateMemberRoleWithExceptionHandling(1L, Role.ADMIN);
+
+        // Test and Verify
+        assertThrows(RuntimeException.class, () -> adminService.updateUser(1, updateUserRequest));
     }
 }
