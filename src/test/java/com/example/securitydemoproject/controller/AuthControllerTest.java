@@ -10,9 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,14 +43,14 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_UserNotFound() {
+    void login_EmptyResult() {
         JwtRequestDto request = new JwtRequestDto("nonexistent@example.com", "password");
-        when(authService.login(request)).thenThrow(new UsernameNotFoundException("User not found"));
+        when(authService.login(request)).thenThrow(new EmptyResultDataAccessException(0));
 
         ResponseEntity<String> response = authController.login(request);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("User not found: User not found", response.getBody());
+        assertEquals("error: 가입되지 않은 Id 입니다.", response.getBody());
         verify(loginHistoryService, never()).logLoginHistory(any());
     }
 
@@ -73,7 +73,7 @@ class AuthControllerTest {
         ResponseEntity<String> response = authController.signup(request);
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals("User already exists: User already exists", response.getBody());
+        assertEquals("error: User already exists", response.getBody());
     }
 
     @Test

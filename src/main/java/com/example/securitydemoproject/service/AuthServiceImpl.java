@@ -10,9 +10,9 @@ import io.jsonwebtoken.security.InvalidKeyException;
 import lombok.AllArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,8 +31,8 @@ public class AuthServiceImpl implements AuthService {
         String requestId = MDC.get("requestId");
         Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
-                    LoggerUtil.requestLogError(AuthServiceImpl.class, requestId, "Unregistered E-MAIL address: " + request.getEmail(), new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다."));
-                    return new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다.");
+                    LoggerUtil.requestLogError(AuthServiceImpl.class, requestId, "Unregistered E-MAIL address: " + request.getEmail(), new EmptyResultDataAccessException(0));
+                    return new EmptyResultDataAccessException(0);
                 });
 
         if (request.getPassword().compareTo(member.getPassword()) != 0) {
@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         Member member = new Member(request);
 
         memberRepository.save(member);
-        LoggerUtil.requestLogInfo(AuthServiceImpl.class, requestId,"Sign up completed. Email: " + member.getEmail());
+        LoggerUtil.requestLogInfo(AuthServiceImpl.class, requestId, "Sign up completed. Email: " + member.getEmail());
         return member.getEmail();
     }
 

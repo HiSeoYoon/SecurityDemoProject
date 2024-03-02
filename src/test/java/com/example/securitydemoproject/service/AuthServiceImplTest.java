@@ -16,8 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.InvalidKeyException;
@@ -84,7 +84,7 @@ class AuthServiceImplTest {
         when(memberRepository.findByEmail(email)).thenReturn(java.util.Optional.empty());
 
         // Perform the login and verify that the expected exception is thrown
-        assertThrows(UsernameNotFoundException.class, () -> authService.login(requestDto));
+        assertThrows(EmptyResultDataAccessException.class, () -> authService.login(requestDto));
 
         // Verify that repository method was called
         verify(memberRepository, times(1)).findByEmail(email);
@@ -94,13 +94,13 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void login_InvalidEmail_ThrowsUsernameNotFoundException() {
+    void login_InvalidEmail_ThrowsEmptyResultException() {
         // Arrange
         JwtRequestDto request = new JwtRequestDto("nonexistent@example.com", "password");
         when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(UsernameNotFoundException.class, () -> authService.login(request));
+        assertThrows(EmptyResultDataAccessException.class, () -> authService.login(request));
     }
 
     @Test
