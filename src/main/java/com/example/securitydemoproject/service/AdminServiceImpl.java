@@ -7,7 +7,7 @@ import com.example.securitydemoproject.repository.AdminRepository;
 import com.example.securitydemoproject.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import org.slf4j.MDC;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -44,8 +44,8 @@ public class AdminServiceImpl implements AdminService {
         Map<String, Object> response = new HashMap<>();
         Member member = adminRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> {
-                    LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
-                    return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
+                    LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new EmptyResultDataAccessException(0));
+                    return new EmptyResultDataAccessException(0);
                 });
 
         if (member != null) {
@@ -68,8 +68,8 @@ public class AdminServiceImpl implements AdminService {
         try {
             Member member = adminRepository.findById(Long.valueOf(userId))
                     .orElseThrow(() -> {
-                        LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new UsernameNotFoundException("가입되지 않은 Id 입니다."));
-                        return new UsernameNotFoundException("가입되지 않은 Id 입니다.");
+                        LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found with id: " + userId, new EmptyResultDataAccessException(0));
+                        return new EmptyResultDataAccessException(0);
                     });
 
             if (member != null) {
@@ -81,6 +81,9 @@ public class AdminServiceImpl implements AdminService {
                 updatedUserDetails.put("name", member.getName());
                 updatedUserDetails.put("role", updateUserRequest.getRole());
             }
+        } catch (EmptyResultDataAccessException ex) {
+            LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "User not found :" + userId, ex);
+            throw new EmptyResultDataAccessException(0);
         } catch (RuntimeException ex) {
             LoggerUtil.requestLogError(AdminServiceImpl.class, requestId, "Error occurred while updating user role with id: " + userId, ex);
             throw new RuntimeException("Error occurred while updating user role with id: " + userId, ex);

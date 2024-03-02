@@ -8,10 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -51,16 +51,16 @@ class UserControllerTest {
     }
 
     @Test
-    void getUser_UsernameNotFoundException() throws AuthenticationException {
+    void getUser_EmptyResultException() throws AuthenticationException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(jwtProvider.resolveToken(request)).thenReturn("fakeToken");
         when(jwtProvider.getUsernameFromToken("fakeToken")).thenReturn("testUser");
-        doThrow(new UsernameNotFoundException("User not found")).when(userService).getUserByUserName("testUser");
+        doThrow(new EmptyResultDataAccessException(0)).when(userService).getUserByUserName("testUser");
 
         ResponseEntity<Map<String, Object>> responseEntity = userController.getUser(request);
 
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertEquals(createErrorResponse("User not found"), responseEntity.getBody());
+        assertEquals(createErrorResponse("가입되지 않은 Id 입니다."), responseEntity.getBody());
         verify(jwtProvider, times(1)).resolveToken(request);
         verify(jwtProvider, times(1)).getUsernameFromToken("fakeToken");
         verify(userService, times(1)).getUserByUserName("testUser");
@@ -85,18 +85,18 @@ class UserControllerTest {
     }
 
     @Test
-    void changePassword_UsernameNotFoundException() throws AuthenticationException {
+    void changePassword_EmptyResultException() throws AuthenticationException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         ChangePasswordRequest newPassword = new ChangePasswordRequest();
         newPassword.setNewPassword("newPassword");
         when(jwtProvider.resolveToken(request)).thenReturn("fakeToken");
         when(jwtProvider.getUsernameFromToken("fakeToken")).thenReturn("testUser");
-        doThrow(new UsernameNotFoundException("User not found")).when(userService).changePassword("testUser", "newPassword");
+        doThrow(new EmptyResultDataAccessException(0)).when(userService).changePassword("testUser", "newPassword");
 
         ResponseEntity<String> responseEntity = userController.changePassword(request, newPassword);
 
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertEquals("User not found", responseEntity.getBody());
+        assertEquals("가입되지 않은 Id 입니다.", responseEntity.getBody());
         verify(jwtProvider, times(1)).resolveToken(request);
         verify(jwtProvider, times(1)).getUsernameFromToken("fakeToken");
         verify(userService, times(1)).changePassword("testUser", "newPassword");

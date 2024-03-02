@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ class LoginHistoryServiceImplTest {
         when(memberRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // Perform logLoginHistory and verify that the expected exception is thrown
-        assertThrows(UsernameNotFoundException.class, () -> loginHistoryService.logLoginHistory(email));
+        assertThrows(EmptyResultDataAccessException.class, () -> loginHistoryService.logLoginHistory(email));
 
         // Verify that repository method was called
         verify(memberRepository, times(1)).findByEmail(email);
@@ -115,7 +115,7 @@ class LoginHistoryServiceImplTest {
         when(memberRepository.findByName(username)).thenReturn(Optional.empty());
 
         // Perform getLoginHistoryByUserAndTimeRange and verify that the expected exception is thrown
-        assertThrows(UsernameNotFoundException.class,
+        assertThrows(EmptyResultDataAccessException.class,
                 () -> loginHistoryService.getLoginHistoryByUserAndTimeRange(username, startTime, endTime));
 
         // Verify that repository method was called

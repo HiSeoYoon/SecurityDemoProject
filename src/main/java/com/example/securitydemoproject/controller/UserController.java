@@ -8,9 +8,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,10 +40,10 @@ public class UserController {
             Map<String, Object> response = userService.getUserByUserName(username);
             LoggerUtil.requestLogInfo(UserController.class, requestId, "User details retrieved successfully.");
             return ResponseEntity.ok(response);
-        } catch (UsernameNotFoundException e) {
+        } catch (EmptyResultDataAccessException e) {
             LoggerUtil.requestLogError(UserController.class, requestId, "Unregistered USER NAME: ", e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
+            errorResponse.put("error", "가입되지 않은 Id 입니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
@@ -58,9 +58,9 @@ public class UserController {
             userService.changePassword(username, newPassword.getNewPassword());
             LoggerUtil.requestLogInfo(UserController.class, requestId, "Password changed successfully for user " + username);
             return ResponseEntity.ok("Password changed successfully");
-        } catch (UsernameNotFoundException e) {
+        } catch (EmptyResultDataAccessException e) {
             LoggerUtil.requestLogError(UserController.class, requestId, "Unregistered USER NAME: ", e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("가입되지 않은 Id 입니다.");
         }
     }
 }

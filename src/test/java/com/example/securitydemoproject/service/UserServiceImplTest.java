@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -66,7 +66,7 @@ class UserServiceImplTest {
         when(memberRepository.findByName(username)).thenReturn(Optional.empty());
 
         // Perform the getUserByUserName and verify that the expected exception is thrown
-        assertThrows(UsernameNotFoundException.class, () -> userService.getUserByUserName(username));
+        assertThrows(EmptyResultDataAccessException.class, () -> userService.getUserByUserName(username));
 
         // Verify that repository method was called
         verify(memberRepository, times(1)).findByName(username);
@@ -107,7 +107,7 @@ class UserServiceImplTest {
         when(memberRepository.findByName(username)).thenReturn(Optional.empty());
 
         // Perform the changePassword and verify that the expected exception is thrown
-        assertThrows(UsernameNotFoundException.class, () -> userService.changePassword(username, newPassword));
+        assertThrows(EmptyResultDataAccessException.class, () -> userService.changePassword(username, newPassword));
 
         // Verify that repository method was called
         verify(memberRepository, times(1)).findByName(username);
