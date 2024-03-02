@@ -7,7 +7,7 @@ import com.example.securitydemoproject.repository.MemberRepository;
 import com.example.securitydemoproject.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import org.slf4j.MDC;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -36,8 +36,8 @@ public class LoginHistoryServiceImpl implements LoginHistoryService {
         String requestId = MDC.get("requestId");
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    LoggerUtil.requestLogError(LoginHistoryServiceImpl.class, requestId, "Unregistered E-MAIL address: {}" + email, new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다."));
-                    return new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다.");
+                    LoggerUtil.requestLogError(LoginHistoryServiceImpl.class, requestId, "Unregistered E-MAIL address: {}" + email, new EmptyResultDataAccessException(0));
+                    return new EmptyResultDataAccessException(0);
                 });
 
         return member.getId();
@@ -49,8 +49,8 @@ public class LoginHistoryServiceImpl implements LoginHistoryService {
         LoggerUtil.requestLogInfo(LoginHistoryServiceImpl.class, requestId, "Retrieving login history for user: " + username + " between " + startTime + " and " + endTime);
         Member member = memberRepository.findByName(username)
                 .orElseThrow(() -> {
-                    LoggerUtil.requestLogError(LoginHistoryServiceImpl.class, requestId, "Unregistered USER NAME: {}" + username, new UsernameNotFoundException("가입되지 않은 USER NAME 입니다."));
-                    return new UsernameNotFoundException("가입되지 않은 USER NAME 입니다.");
+                    LoggerUtil.requestLogError(LoginHistoryServiceImpl.class, requestId, "Unregistered USER NAME: {}" + username, new EmptyResultDataAccessException(0));
+                    return new EmptyResultDataAccessException(0);
                 });
 
         Long userId = member.getId();

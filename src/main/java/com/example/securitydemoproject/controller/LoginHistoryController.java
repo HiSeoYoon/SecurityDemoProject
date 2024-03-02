@@ -8,10 +8,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,10 +51,10 @@ public class LoginHistoryController {
             List<LoginHistory> loginHistory = loginHistoryService.getLoginHistoryByUserAndTimeRange(username, startTime, endTime);
             LoggerUtil.requestLogInfo(LoginHistoryController.class, requestId, "Login history retrieved successfully.");
             return ResponseEntity.ok(loginHistory);
-        } catch (UsernameNotFoundException e) {
+        } catch (EmptyResultDataAccessException e) {
             LoggerUtil.requestLogError(LoginHistoryController.class, requestId, "User not found :", e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
+            errorResponse.put("error", "가입되지 않은 Id 입니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
