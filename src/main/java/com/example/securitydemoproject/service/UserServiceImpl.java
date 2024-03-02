@@ -6,7 +6,7 @@ import com.example.securitydemoproject.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -27,8 +27,8 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> response = new HashMap<>();
         Member member = memberRepository.findByName(user)
                 .orElseThrow(() -> {
-                    LoggerUtil.requestLogError(UserServiceImpl.class, requestId, "Unregistered USER NAME: " + user, new UsernameNotFoundException("가입되지 않은 USER NAME 입니다."));
-                    return new UsernameNotFoundException("가입되지 않은 USER NAME 입니다.");
+                    LoggerUtil.requestLogError(UserServiceImpl.class, requestId, "Unregistered USER NAME: " + user, new EmptyResultDataAccessException(0));
+                    return new EmptyResultDataAccessException(0);
                 });
 
         if (member != null) {
@@ -46,7 +46,11 @@ public class UserServiceImpl implements UserService {
         String requestId = MDC.get("requestId");
         LoggerUtil.requestLogInfo(UserServiceImpl.class, requestId, "Changing password for user: " + username);
         Member member = memberRepository.findByName(username)
-                .orElseThrow(() -> new UsernameNotFoundException("가입되지 않은 E-MAIL 입니다."));
+                .orElseThrow(() -> {
+                    LoggerUtil.requestLogError(UserServiceImpl.class, requestId, "Unregistered USER NAME: " + username, new EmptyResultDataAccessException(0));
+                    return new EmptyResultDataAccessException(0);
+                });
+
         try {
             member.setPassword(newPassword);
             memberRepository.save(member);
